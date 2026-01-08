@@ -378,20 +378,23 @@ def _skfp_force_dense_output(
         show_progress: bool = True,
         ) -> SklearnTransformer:
     """
-    scikit-fingerprints exposes `sparse` as: return dense NumPy vs SciPy CSR. :contentReference[oaicite:5]{index=5}
-    We always force dense NumPy output.
+    Force dense NumPy output for scikit-fingerprints (avoid SciPy CSR).
+    Also pass verbose if supported.
     """
     params = fpgen.get_params(deep=False)
+    updates = {}
+
+    # only set if supported
     if "sparse" in params and params.get("sparse") is not False:
-        return _clone_transformer_with_params(
-            fpgen, {
-                "sparse": False,
-                "verbose": 1 if show_progress else 0,
-                })
-    return _clone_transformer_with_params(
-        fpgen, {
-            "verbose": 1 if show_progress else 0,
-            })
+        updates["sparse"] = False
+
+    if "verbose" in params:
+        updates["verbose"] = 1 if show_progress else 0
+
+    if updates:
+        return _clone_transformer_with_params(fpgen, updates)
+
+    return fpgen
 
 
 def _skfp_set_variant_raw_bits(fpgen: SklearnTransformer) -> SklearnTransformer:
