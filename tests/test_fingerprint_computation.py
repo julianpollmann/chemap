@@ -61,7 +61,8 @@ class FakeRDKitFPGen:
         sparse_dict: dict[int, int] | None = None,
     ):
         self._dense_fp = np.array([0, 1, 1, 0], dtype=np.int32) if dense_fp is None else np.asarray(dense_fp)
-        self._dense_count_fp = np.array([0, 2, 5, 0], dtype=np.int32) if dense_count_fp is None else np.asarray(dense_count_fp)
+        self._dense_count_fp = np.array([0, 2, 5, 0],
+                                        dtype=np.int32) if dense_count_fp is None else np.asarray(dense_count_fp)
         self._sparse = {1: 2, 2: 5} if sparse_dict is None else dict(sparse_dict)
 
     def GetFingerprintAsNumPy(self, mol):

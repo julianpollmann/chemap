@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import Any, Dict, List, Literal, Optional, Sequence, Tuple, Union, Protocol
-from tqdm import tqdm
+from typing import Any, Dict, List, Literal, Optional, Protocol, Sequence, Tuple, Union
 import numpy as np
 from rdkit import Chem
+from tqdm import tqdm
 
 
 # -----------------------------
@@ -113,7 +113,7 @@ def compute_fingerprints(
     or ragged RDKit-style sparse representations. :contentReference[oaicite:3]{index=3}
 
     For config.sparse=True with scikit-fingerprints, we require the transformer to support an
-    unfolded feature-space via a `variant="raw_bits"` parameter (e.g., PharmacophoreFingerprint). :contentReference[oaicite:4]{index=4}
+    unfolded feature-space via a `variant="raw_bits"` parameter (e.g., PharmacophoreFingerprint).
     """
     _validate_config(config)
 
