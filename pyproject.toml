@@ -14,7 +14,7 @@ pandas = ">=2.2.1"
 scipy= ">=1.15.2"
 matplotlib= ">=3.10.1"
 rdkit = ">=2024.9.6"
-scikit-fingerprint = ">=1.15.0"
+scikit-fingerprints = ">=1.15.0"
 tqdm = ">=4.67.1"
 
 [tool.poetry.group.dev.dependencies]
