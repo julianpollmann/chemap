@@ -1,0 +1,15 @@
+*.egg-info
+*.eggs
+.ipynb_checkpoints/
+.cache
+data/
+figures/
+experiments/
+
+build
+dist
+__pycache__
+
+*.npy
+*.pickle
+.idea/
