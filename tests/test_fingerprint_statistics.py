@@ -1,8 +1,7 @@
 import numpy as np
-import pytest
 from chemap.fingerprint_statistics import (
-    unfolded_fingerprint_bit_statistics,
     unfolded_count_fingerprint_bit_statistics,
+    unfolded_fingerprint_bit_statistics,
 )
 
 
