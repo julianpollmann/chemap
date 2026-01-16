@@ -1,7 +1,7 @@
 from typing import Sequence
 import numpy as np
-import scipy.sparse as sp
 import pytest
+import scipy.sparse as sp
 from chemap import FingerprintConfig, compute_fingerprints
 
 
@@ -315,7 +315,10 @@ def test_rdkit_folded_csr_returns_csr_and_values():
     assert sp.issparse(X)
     X = X.tocsr()
     assert X.shape == (2, 4)
-    np.testing.assert_array_equal(X.toarray().astype(np.float32), np.array([[0, 1, 0, 1], [0, 1, 0, 1]], dtype=np.float32))
+    np.testing.assert_array_equal(
+        X.toarray().astype(np.float32),
+        np.array([[0, 1, 0, 1], [0, 1, 0, 1]], dtype=np.float32)
+        )
 
 
 # =============================================================================
