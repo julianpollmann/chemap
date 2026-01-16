@@ -6,3 +6,94 @@
     
 # chemap - Chemical Mapping
 Library for computing molecular fingerprint based similarities as well as dimensionality reduction based chemical space visualizations.
+
+
+## Fingerprint computations
+Fingerprints can be computed using generators from `RDKit` or `scikit-fingerprints`. Here a code example:
+
+```python
+import numpy as np
+import scipy.sparse as sp
+from rdkit.Chem import rdFingerprintGenerator
+from skfp.fingerprints import MAPFingerprint, AtomPairFingerprint
+
+from fingerprinting import compute_fingerprints, FingerprintConfig
+
+
+smiles = [
+    "CCO",          # ethanol
+    "c1ccccc1",     # benzene
+]
+
+# ----------------------------
+# RDKit: Morgan (folded, dense)
+# ----------------------------
+morgan = rdFingerprintGenerator.GetMorganGenerator(radius=3, fpSize=4096)
+X_morgan = compute_fingerprints(
+    smiles,
+    morgan,
+    config=FingerprintConfig(
+        count=False,
+        folded=True,
+        return_csr=False,   # dense numpy
+        invalid_policy="raise",
+    ),
+)
+print("RDKit Morgan:", X_morgan.shape, X_morgan.dtype)
+
+# -----------------------------------
+# RDKit: RDKitFP (folded, CSR sparse)
+# -----------------------------------
+rdkitfp = rdFingerprintGenerator.GetRDKitFPGenerator(fpSize=4096)
+X_rdkitfp_csr = compute_fingerprints(
+    smiles,
+    rdkitfp,
+    config=FingerprintConfig(
+        count=False,
+        folded=True,
+        return_csr=True,    # SciPy CSR
+        invalid_policy="raise",
+    ),
+)
+assert sp.issparse(X_rdkitfp_csr)
+print("RDKit RDKitFP (CSR):", X_rdkitfp_csr.shape, X_rdkitfp_csr.dtype, "nnz=", X_rdkitfp_csr.nnz)
+
+# --------------------------------------------------
+# scikit-fingerprints: MAPFingerprint (folded, dense)
+# --------------------------------------------------
+# MAPFingerprint is a MinHash-like fingerprint (different from MAP4 lib).
+map_fp = MAPFingerprint(fp_size=4096, count=False, sparse=False)
+X_map = compute_fingerprints(
+    smiles,
+    map_fp,
+    config=FingerprintConfig(
+        count=False,
+        folded=True,
+        return_csr=False,
+        invalid_policy="raise",
+    ),
+)
+print("skfp MAPFingerprint:", X_map.shape, X_map.dtype)
+
+# ----------------------------------------------------
+# scikit-fingerprints: AtomPairFingerprint (folded, CSR)
+# ----------------------------------------------------
+atom_pair = AtomPairFingerprint(fp_size=4096, count=False, sparse=False, use_3D=False)
+X_ap_csr = compute_fingerprints(
+    smiles,
+    atom_pair,
+    config=FingerprintConfig(
+        count=False,
+        folded=True,
+        return_csr=True,
+        invalid_policy="raise",
+    ),
+)
+assert sp.issparse(X_ap_csr)
+print("skfp AtomPair (CSR):", X_ap_csr.shape, X_ap_csr.dtype, "nnz=", X_ap_csr.nnz)
+
+# (Optional) convert CSR -> dense if you need a NumPy array downstream:
+X_ap = X_ap_csr.toarray().astype(np.float32, copy=False)
+
+
+```
