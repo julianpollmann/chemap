@@ -16,13 +16,11 @@ import scipy.sparse as sp
 from rdkit.Chem import rdFingerprintGenerator
 from skfp.fingerprints import MAPFingerprint, AtomPairFingerprint
 
-from fingerprinting import compute_fingerprints, FingerprintConfig
+from chemap import compute_fingerprints, DatasetLoader, FingerprintConfig
 
 
-smiles = [
-    "CCO",          # ethanol
-    "c1ccccc1",     # benzene
-]
+ds_loader = DatasetLoader()
+smiles = ds_loader.load("tests/data/smiles.csv")
 
 # ----------------------------
 # RDKit: Morgan (folded, dense)
