@@ -1,3 +1,6 @@
+
+<img src="./materials/chemap_logo_green_pink.svg">
+
 ![GitHub License](https://img.shields.io/github/license/matchms/chemap)
 [![PyPI](https://img.shields.io/pypi/v/chemap?color=teal)](https://pypi.org/project/chemap/)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/matchms/chemap/CI_build_and_matrix_tests.yml)
