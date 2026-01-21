@@ -2,9 +2,17 @@
 name = "chemap"
 version = "0.1.0"
 description = "Library for computing molecular fingerprint based similarities as well as dimensionality reduction based chemical space visualizations. "
+authors = [
+  { name="Florian Huber", email="florian.huber@hs-duesseldorf.de" },
+  { name="Julian Pollmann", email="julian.pollmann@hs-duesseldorf.de" },
+]
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
 
 dependencies = [
     "map4>=1.1.3",
