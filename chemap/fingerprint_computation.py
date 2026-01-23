@@ -5,6 +5,7 @@ import numpy as np
 import scipy.sparse as sp
 from joblib import Parallel, delayed
 from rdkit import Chem
+from sklearn.base import BaseEstimator, TransformerMixin
 from tqdm import tqdm
 
 
@@ -75,12 +76,28 @@ class FingerprintConfig:
 class SklearnTransformer(Protocol):
     """Protocol for sklearn-like fingerprint transformers (including scikit-fingerprints)."""
 
+    def fit(self, X: Any, y: Any = None) -> "SklearnTransformer":
+        ...
+
     def transform(self, X: Sequence[str]) -> Any:
         ...
 
     def get_params(self, deep: bool = False) -> Dict[str, Any]:
         ...
 
+
+class RobustMolTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self, n_jobs=-1):
+        self.n_jobs = n_jobs
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        results = Parallel(n_jobs=self.n_jobs)(
+            delayed(_mol_from_smiles_robust)(s) for s in X
+        )
+        return results
 
 # -----------------------------
 # Public entry point
@@ -561,7 +578,11 @@ def _compute_sklearn(
     n_jobs: int,
 ) -> FingerprintResult:
     fp = _skfp_configure_output(fpgen, cfg, show_progress=show_progress, n_jobs=n_jobs)
-    X = fp.transform(smiles)
+    mol_transformer = RobustMolTransformer(n_jobs=n_jobs)
+    mols = mol_transformer.transform(smiles)
+    valid_mols = [m for m in mols if m is not None]
+    fp.fit(valid_mols)
+    X = fp.transform(valid_mols)
 
     if not cfg.folded:
         # unfolded output
