@@ -1,5 +1,5 @@
 
-<img src="./materials/chemap_logo_green_pink.svg" width="400">
+<img src="./materials/chemap_logo_green_pink.png" width="400">
 
 ![GitHub License](https://img.shields.io/github/license/matchms/chemap?color=#00B050)
 [![PyPI](https://img.shields.io/pypi/v/chemap?color=#00B050)](https://pypi.org/project/chemap/)
