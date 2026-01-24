@@ -118,6 +118,14 @@ def _compute_df_and_order(
     """
     Compute document frequency df(bit) = number of rows where bit appears at least once.
 
+    Parameters
+    ----------
+    fingerprints
+        Sequence of unfolded fingerprints.
+    consolidate_duplicates_within_rows
+        If True, multiple occurrences of the same bit within a row count once for DF.
+    sort_bits
+        If True, sort bits in the vocabulary; else preserve first-seen order.
     Returns:
       df_dict : {bit_id -> df}
       order   : {bit_id -> first_seen_index} if sort_bits=False else None
@@ -147,15 +155,18 @@ def _compute_df_and_order(
         if bits_i64.size == 0:
             continue
 
-        # For DF, duplicates in a row must count once (document frequency).
-        # Using np.unique is correct even if consolidate_duplicates_within_rows=False.
+        # DF: presence once per row (sorted unique is fine)
         row_unique = np.unique(bits_i64)
         for b in row_unique:
             bi = int(b)
             df[bi] = df.get(bi, 0) + 1
-            if order is not None and bi not in order:
-                order[bi] = len(order)
 
+        # ORDER: first-seen in original iteration order (NOT unique-sorted order)
+        if order is not None:
+            for b in bits_i64:
+                bi = int(b)
+                if bi not in order:
+                    order[bi] = len(order)
     return df, order, nnz_ub, kind
 
 
