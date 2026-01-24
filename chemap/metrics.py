@@ -1,4 +1,4 @@
-from typing import Literal, Optional, Sequence, Tuple, Union
+from typing import Literal, Optional, Tuple, Union
 import numba
 import numpy as np
 import scipy.sparse as sp
