@@ -21,6 +21,53 @@ DenseMatrix = np.ndarray
 SparseMatrix = sp.csr_matrix
 
 
+# ---------------------------
+# Generalized Jaccard/Tanimoto
+# ---------------------------
+
+# "Generalized" means for nonnegative values:
+# sim = sum(min(x,y)) / sum(max(x,y))
+# For binary vectors this equals standard Jaccard.
+
+
+# ---- Dense (single pair) ----
+
+@numba.njit(cache=True, fastmath=True)
+def tanimoto_similarity_dense(a: np.ndarray, b: np.ndarray) -> float:
+    """
+    Generalized Jaccard/Tanimoto similarity for dense 1D vectors (nonnegative values).
+    Works for binary or count/weight vectors.
+
+    sim = sum(min(a,b)) / sum(max(a,b))
+
+    Parameters
+    ----------
+    a
+        1D numpy array (vector).
+    b
+        1D numpy array (vector).
+    """
+    min_sum = 0.0
+    max_sum = 0.0
+    for i in range(a.shape[0]):
+        ai = a[i]
+        bi = b[i]
+        if ai < bi:
+            min_sum += ai
+            max_sum += bi
+        else:
+            min_sum += bi
+            max_sum += ai
+    if max_sum == 0.0:
+        return 1.0
+    return min_sum / max_sum
+
+
+@numba.njit(cache=True, fastmath=True)
+def tanimoto_distance_dense(a: np.ndarray, b: np.ndarray) -> float:
+    """Distance = 1 - similarity."""
+    return 1.0 - tanimoto_similarity_dense(a, b)
+
 @numba.njit
 def jaccard_similarity_matrix_weighted(references: np.ndarray, queries: np.ndarray, weights: np.ndarray) -> np.ndarray:
     """Returns matrix of weighted jaccard indices between all-vs-all vectors of references
