@@ -593,7 +593,7 @@ def _compute_sklearn(
     # folded=True
     if cfg.return_csr:
         if sp.issparse(X):
-            X_csr = X.tocsr().astype(np.float32)
+            X_csr = sp.csr_matrix(X, dtype=np.float32)
         else:
             X_csr = sp.csr_matrix(np.asarray(X, dtype=np.float32), dtype=np.float32)
 
