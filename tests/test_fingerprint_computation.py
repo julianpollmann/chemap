@@ -392,7 +392,7 @@ def test_sklearn_folded_dense_sets_verbose_show_progress_true():
     )
     cfg = FingerprintConfig(count=True, folded=True, return_csr=False)
 
-    X = compute_fingerprints(["A", "B"], fp, cfg, show_progress=True)
+    X = compute_fingerprints(["CCO", "c1ccccc1"], fp, cfg, show_progress=True)
     np.testing.assert_array_equal(X, np.array([[1, 0], [0, 1]], dtype=np.float32))
 
 
@@ -470,7 +470,7 @@ def test_sklearn_folded_csr_requests_sparse_from_transformer_and_returns_csr():
     )
     cfg = FingerprintConfig(count=True, folded=True, return_csr=True)
 
-    X = compute_fingerprints(["A", "B"], fp, cfg, show_progress=True)
+    X = compute_fingerprints(["CCO", "c1ccccc1"], fp, cfg, show_progress=True)
     assert sp.issparse(X)
     np.testing.assert_array_equal(X.toarray().astype(np.float32), np.array([[5, 6], [7, 8]], dtype=np.float32))
 
@@ -508,3 +508,64 @@ def test_rdkit_morgan_unfolded_smoke_sorted_keys():
     assert k0.dtype == np.int64
     assert v0.dtype == np.float32
     assert np.all(k0[:-1] <= k0[1:])
+
+# =============================================================================
+# sklearn/scikit-fingerprints backend: invalid SMILES policy parity with RDKit backend
+# =============================================================================
+
+def test_sklearn_invalid_policy_keep_folded_dense_preserves_alignment_and_backfills_zeros():
+    """
+    Expected behavior (parity with RDKit backend):
+      - invalid_policy="keep" keeps N rows aligned to input SMILES
+      - invalid SMILES row is all zeros
+    """
+    fp = FakeTransformer(
+        sparse=False,
+        mode="onehot",
+        n_features=3,
+        variant=None,
+    )
+    cfg = FingerprintConfig(count=True, folded=True, return_csr=False, invalid_policy="keep")
+
+    X = compute_fingerprints(["C99", "CCO"], fp, cfg)
+    assert isinstance(X, np.ndarray)
+    assert X.shape == (2, 3)
+
+    np.testing.assert_array_equal(X[0], np.zeros(3, dtype=np.float32))
+    np.testing.assert_array_equal(X[1], np.array([1, 0, 0], dtype=np.float32))
+
+
+def test_sklearn_invalid_policy_drop_folded_dense_drops_invalid_rows():
+    """
+    Expected behavior:
+      - invalid_policy="drop" removes invalid SMILES from output (fewer rows)
+    """
+    fp = FakeTransformer(
+        sparse=False,
+        mode="onehot",
+        n_features=3,
+        variant=None,
+    )
+    cfg = FingerprintConfig(count=True, folded=True, return_csr=False, invalid_policy="drop")
+
+    X = compute_fingerprints(["C99", "CCO"], fp, cfg)
+    assert isinstance(X, np.ndarray)
+    assert X.shape == (1, 3)
+    np.testing.assert_array_equal(X[0], np.array([1, 0, 0], dtype=np.float32))
+
+
+def test_sklearn_invalid_policy_raise_raises_valueerror_on_invalid_smiles():
+    """
+    Expected behavior:
+      - invalid_policy="raise" raises ValueError on first invalid SMILES
+    """
+    fp = FakeTransformer(
+        sparse=False,
+        mode="onehot",
+        n_features=3,
+        variant=None,
+    )
+    cfg = FingerprintConfig(count=True, folded=True, return_csr=False, invalid_policy="raise")
+
+    with pytest.raises(ValueError, match="Invalid SMILES"):
+        _ = compute_fingerprints(["C99", "CCO"], fp, cfg)
