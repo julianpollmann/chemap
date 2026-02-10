@@ -6,7 +6,10 @@ import scipy.sparse as sp
 from rdkit.Chem import rdFingerprintGenerator
 from skfp.fingerprints import (
     AtomPairFingerprint,
+    AvalonFingerprint,
+    ECFPFingerprint,
     KlekotaRothFingerprint,
+    LingoFingerprint,
     MACCSFingerprint,
     MAPFingerprint,
     PubChemFingerprint,
@@ -44,10 +47,13 @@ def _rdkit_generators() -> List[Tuple[str, Any]]:
 def _skfp_generators() -> Dict[str, Any]:
     return {
         "MAPFingerprint": MAPFingerprint,
+        "AvalonFingerprint": AvalonFingerprint,
         "AtomPairFingerprint": AtomPairFingerprint,
+        "ECFPFingerprint": ECFPFingerprint,
         "MACCSFingerprint": MACCSFingerprint,
         "PubChemFingerprint": PubChemFingerprint,
         "KlekotaRothFingerprint": KlekotaRothFingerprint,
+        "LingoFingerprint": LingoFingerprint,
     }
 
 
