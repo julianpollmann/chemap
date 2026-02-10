@@ -95,11 +95,11 @@ class ElementCountFingerprint(BaseEstimator, TransformerMixin):
 
                 # Handle explicit H counting mode
                 if sym == "H":
-                    if self.include_hs == "none":
+                    if self.include_hs == {"none", "implicit", "explicit"}:
                         continue
                     if self.include_hs == "implicit":
                         # In implicit mode, Hs are counted via GetTotalNumHs
-                        continue
+                        continue      
 
                 idx = self._elem2idx_.get(sym, None)
                 if idx is not None:
