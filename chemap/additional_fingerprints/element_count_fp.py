@@ -1,0 +1,144 @@
+from typing import Any, Dict, List, Optional, Sequence
+import numpy as np
+import scipy.sparse as sp
+from joblib import Parallel, delayed
+from rdkit import Chem
+from sklearn.base import BaseEstimator, TransformerMixin
+
+
+class ElementCountFingerprint(BaseEstimator, TransformerMixin):
+    """
+    sklearn-style element-count baseline fingerprint.
+
+    Input:  Sequence[rdkit.Chem.Mol]
+    Output: (N, D) float32 dense or CSR float32 (if sparse=True)
+
+    Notes
+    -----
+    - Feature order is defined by `elements`. If provided, D is fixed.
+    - include_hs:
+        * "implicit": counts implicit Hs via atom.GetTotalNumHs()
+        * "explicit": counts only explicit H atoms present in the graph
+        * "none": do not count H at all
+    - unknown_policy:
+        * "ignore": drop elements not in `elements`
+        * "other": accumulate into an "Other" feature (appended if not in `elements`)
+        * "error": raise if an unknown element is encountered
+    """
+
+    def __init__(
+        self,
+        *,
+        elements: Optional[Sequence[str]] = None,
+        include_hs: str = "implicit",     # "implicit" | "explicit" | "none"
+        unknown_policy: str = "other",    # "ignore" | "other" | "error"
+        sparse: bool = False,
+        variant: str = "folded",          # kept for chemap compatibility
+        n_jobs: int = 1,
+        verbose: int = 0,
+    ):
+        self.elements = list(elements) if elements is not None else None
+        self.include_hs = include_hs
+        self.unknown_policy = unknown_policy
+        self.sparse = sparse
+        self.variant = variant
+        self.n_jobs = n_jobs
+        self.verbose = verbose
+
+    def fit(self, X: Sequence[Any], y: Any = None) -> "ElementCountTransformer":
+        # If elements not given, infer a stable vocabulary from X (plus H depending on include_hs)
+        if self.elements is None:
+            vocab = set()
+            for mol in X:
+                if mol is None:
+                    continue
+                for atom in mol.GetAtoms():
+                    vocab.add(atom.GetSymbol())
+                if self.include_hs == "implicit":
+                    vocab.add("H")
+                elif self.include_hs == "explicit":
+                    # Only adds H if explicit H atoms exist
+                    # Default is that RDKit mols do not have explicit Hs, so this won't add H unless they are present
+                    vocab.add("H")
+
+            elems = sorted(vocab)
+            if self.unknown_policy == "other" and "Other" not in elems:
+                elems.append("Other")
+            self.elements_ = elems
+        else:
+            elems = list(self.elements)
+            if self.unknown_policy == "other" and "Other" not in elems:
+                elems.append("Other")
+            self.elements_ = elems
+
+        self._elem2idx_: Dict[str, int] = {e: i for i, e in enumerate(self.elements_)}
+        self.n_features_in_ = len(self.elements_)
+        return self
+
+    def transform(self, X: Sequence[Any]):
+        if not hasattr(self, "_elem2idx_"):
+            # sklearn convention: allow transform without explicit fit
+            self.fit(X)
+
+        D = self.n_features_in_
+
+        def fp_row(mol) -> np.ndarray:
+            if mol is None:
+                return np.zeros((D,), dtype=np.float32)
+
+            out = np.zeros((D,), dtype=np.float32)
+            other_idx = self._elem2idx_.get("Other", None)
+
+            # Count explicit atoms
+            for atom in mol.GetAtoms():
+                sym = atom.GetSymbol()
+
+                # Handle explicit H counting mode
+                if sym == "H":
+                    if self.include_hs == "none":
+                        continue
+                    if self.include_hs == "implicit":
+                        # In implicit mode, Hs are counted via GetTotalNumHs
+                        continue
+
+                idx = self._elem2idx_.get(sym, None)
+                if idx is not None:
+                    out[idx] += 1.0
+                else:
+                    if self.unknown_policy == "ignore":
+                        pass
+                    elif self.unknown_policy == "other" and other_idx is not None:
+                        out[other_idx] += 1.0
+                    else:
+                        raise ValueError(f"Unknown element '{sym}' not in elements vocabulary.")
+
+            # Count implicit Hs (most common + stable baseline)
+            if self.include_hs == "implicit":
+                h_idx = self._elem2idx_.get("H", None)
+                if h_idx is not None:
+                    h_count = 0
+                    for atom in mol.GetAtoms():
+                        # total Hs on this heavy atom (implicit + explicit attached),
+                        # but in normal RDKit mols explicit H atoms are absent.
+                        h_count += int(atom.GetTotalNumHs())
+                    out[h_idx] += float(h_count)
+
+            # Count explicit H atoms if requested
+            if self.include_hs == "explicit":
+                h_idx = self._elem2idx_.get("H", None)
+                if h_idx is not None:
+                    h_count = sum(1 for a in mol.GetAtoms() if a.GetSymbol() == "H")
+                    out[h_idx] += float(h_count)
+
+            return out
+
+        rows: List[np.ndarray] = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
+            delayed(fp_row)(mol) for mol in X
+        )
+
+        X_dense = np.vstack(rows).astype(np.float32, copy=False) if rows else np.zeros((0, D), dtype=np.float32)
+
+        if not self.sparse:
+            return X_dense
+
+        return sp.csr_matrix(X_dense, dtype=np.float32)
