@@ -45,7 +45,7 @@ class ElementCountFingerprint(BaseEstimator, TransformerMixin):
         self.n_jobs = n_jobs
         self.verbose = verbose
 
-    def fit(self, X: Sequence[Any], y: Any = None) -> "ElementCountTransformer":
+    def fit(self, X: Sequence[Any], y: Any = None) -> "ElementCountFingerprint":
         # If elements not given, infer a stable vocabulary from X (plus H depending on include_hs)
         if self.elements is None:
             vocab = set()
