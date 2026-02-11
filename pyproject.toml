@@ -63,6 +63,15 @@ dev = [
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.uv]
+conflicts = [
+  [
+    { extra = "cpu" },
+    { extra = "gpu-cu12" },
+    { extra = "gpu-cu13" },
+  ],
+]
+
 [tool.ruff]
 line-length = 120
 output-format = "grouped"
