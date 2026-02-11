@@ -46,7 +46,7 @@ cpu = [
   "pynndescent>=0.5.13",
 ]
 
-[dependency-groups]
+# Development extras
 dev = [
     "decorator>=5.1.1",
     "pytest>=7.4.0",
