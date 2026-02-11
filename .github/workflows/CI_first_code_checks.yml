@@ -30,16 +30,14 @@ jobs:
         uses: astral-sh/setup-uv@v4
       
       - name: Install dependencies
-        run: |
-          uv pip install --system -e ".[dev]"
-  
-      - name: Show pip list
-        run: |
-          pip list
+        run: uv sync --extra dev
+      
+      - name: Show installed packages
+        run: uv pip list
   
       - name: Test with coverage
         run: |
-          pytest --cov --cov-report term --cov-report xml --junitxml=xunit-result.xml
+          uv run pytest --cov --cov-report term --cov-report xml --junitxml=xunit-result.xml
   
       - name: Correct coverage paths
         run: sed -i "s+$PWD/++g" coverage.xml
