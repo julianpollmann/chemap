@@ -8,7 +8,7 @@
     
 # chemap - Mapping chemical space
 Library for computing molecular fingerprint based similarities as well as dimensionality reduction based chemical space visualizations.
-
+Test
 ## Installation
 `chemap` can be installed using pip.
 ```bash
