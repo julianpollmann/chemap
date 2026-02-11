@@ -26,6 +26,8 @@ dependencies = [
     "tqdm>=4.67.1",
     "pooch>=1.8.2",
     "joblib>=1.3.2",
+    "umap-learn>=0.5.8",
+    "pynndescent>=0.5.13",
 ]
 
 [project.optional-dependencies]
@@ -41,12 +43,13 @@ gpu-cu13 = [
 ]
 
 # Alternative: CPU UMAP
-cpu = [
-  "umap-learn>=0.5.8",
-  "pynndescent>=0.5.13",
-]
+#cpu = [
+#  "umap-learn>=0.5.8",
+#  "pynndescent>=0.5.13",
+#]
 
 # Development extras
+[dependency-groups]
 dev = [
     "decorator>=5.1.1",
     "pytest>=7.4.0",
